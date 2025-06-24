@@ -1,4 +1,4 @@
-import { Button, Input } from '@rneui/base'
+import { Button, Input } from '@rneui/themed'
 import React, { useState } from 'react'
 import { Alert, AppState, StyleSheet, View } from 'react-native'
 import { supabase } from '../lib/supabase'
@@ -52,7 +52,7 @@ export default function Auth() {
         <Input
           label="Email"
           leftIcon={{ type: 'font-awesome', name: 'envelope' }}
-          onChangeText={(text: string) => setEmail(text)}
+          onChangeText={(text) => setEmail(text)}
           value={email}
           placeholder="email@address.com"
           autoCapitalize={'none'}
@@ -62,7 +62,7 @@ export default function Auth() {
         <Input
           label="Password"
           leftIcon={{ type: 'font-awesome', name: 'lock' }}
-          onChangeText={(text: string) => setPassword(text)}
+          onChangeText={(text) => setPassword(text)}
           value={password}
           secureTextEntry={true}
           placeholder="Password"

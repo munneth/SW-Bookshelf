@@ -1,9 +1,11 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { Session } from '@supabase/supabase-js';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Modal, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { supabase } from '../../lib/supabase';
 import { styles } from './styles';
 
 // Star Wars themed books
@@ -76,30 +78,123 @@ const starWarsBooks = [
 
 export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [username, setUsername] = useState('');
+  const [website, setWebsite] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const router = useRouter();
+
+  // Check for session on component mount
+  useEffect(() => {
+    checkSession();
+  }, []);
+
+  async function checkSession() {
+    const { data: { session } } = await supabase.auth.getSession();
+    setSession(session);
+    if (session) {
+      getProfile();
+    }
+  }
+
+  async function getProfile() {
+    try {
+      setProfileLoading(true);
+      if (!session?.user) return;
+
+      const { data, error, status } = await supabase
+        .from('profiles')
+        .select(`username, website, avatar_url`)
+        .eq('id', session?.user.id)
+        .single();
+
+      if (error && status !== 406) {
+        console.error('Error loading profile:', error);
+        return;
+      }
+
+      if (data) {
+        setUsername(data.username || '');
+        setWebsite(data.website || '');
+        setAvatarUrl(data.avatar_url || '');
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    } finally {
+      setProfileLoading(false);
+    }
+  }
+
+  async function updateProfile() {
+    try {
+      setProfileLoading(true);
+      if (!session?.user) {
+        Alert.alert('No user session found');
+        return;
+      }
+
+      const updates = {
+        id: session?.user.id,
+        username,
+        website,
+        avatar_url: avatarUrl,
+        updated_at: new Date(),
+      };
+
+      const { error } = await supabase.from('profiles').upsert(updates);
+
+      if (error) {
+        Alert.alert('Error updating profile:', error.message);
+        return;
+      }
+
+      Alert.alert('Profile updated successfully!');
+      setProfileModalVisible(false);
+    } catch (error) {
+      Alert.alert('Error updating profile');
+      console.error('Error:', error);
+    } finally {
+      setProfileLoading(false);
+    }
+  }
+
   return (
-    
-
-
-    
     <ThemedView style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View>
               <ThemedText style={styles.title}>The Jedi Archives</ThemedText>
-              <TouchableOpacity style={styles.title}onPress={() => router.push('/login')}>
-                <ThemedText style={{
-                  flexDirection: 'row',
-                  backgroundColor: 'red',
-                  borderRadius: 10,
-                  padding: 10,
-                  margin: 10,
-                  color: 'white',
-                  fontSize: 16,
-                  fontWeight: 'bold',
-                  textAlign: 'center',
-                }}>Login</ThemedText>
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <TouchableOpacity onPress={() => router.push('/login')}>
+                  <ThemedText style={{
+                    backgroundColor: 'red',
+                    borderRadius: 10,
+                    padding: 10,
+                    margin: 10,
+                    color: 'white',
+                    fontSize: 16,
+                    fontWeight: 'bold',
+                    textAlign: 'center',
+                  }}>Login</ThemedText>
+                </TouchableOpacity>
+                
+                {session && (
+                  <TouchableOpacity onPress={() => setProfileModalVisible(true)}>
+                    <ThemedText style={{
+                      backgroundColor: '#4CAF50',
+                      borderRadius: 10,
+                      padding: 10,
+                      margin: 10,
+                      color: 'white',
+                      fontSize: 16,
+                      fontWeight: 'bold',
+                      textAlign: 'center',
+                    }}>Profile</ThemedText>
+                  </TouchableOpacity>
+                )}
+              </View>
           </View>
           <ThemedText style={styles.subtitle}>May the Force be with your reading</ThemedText>
         </View>
@@ -131,50 +226,146 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
         
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={modalVisible}
-            onRequestClose={() => {
-              Alert.alert('Modal has been closed.');
-              setModalVisible(!modalVisible);
-            }}>
-            <View style={styles.centeredView}>
-              <View style={styles.modalView}>
+      {/* Book Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(false);
+        }}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={{
+              color: 'white',
+              fontSize: 30,
+              fontWeight: 'bold',
+              margin: 10,
+              textAlign: 'center',
+            }}>Title</Text>
+            <TextInput
+              placeholder="Title"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                color: 'black',
+                width: 225,
+                height: 50,
+                margin: -10,
+                borderWidth: 1,
+                padding: 10,
+                borderRadius: 8,
+              }}
+              placeholderTextColor="#D2B48C"
+            />
+            <Pressable
+              style={[styles.button, styles.buttonClose]}
+              onPress={() => setModalVisible(false)}>
+              <Text style={styles.textStyle}>X</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Profile Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={profileModalVisible}
+        onRequestClose={() => {
+          setProfileModalVisible(false);
+        }}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={{
+              color: 'white',
+              fontSize: 30,
+              fontWeight: 'bold',
+              margin: 10,
+              textAlign: 'center',
+            }}>Update Profile</Text>
+            
+            <TextInput
+              placeholder="Username"
+              value={username}
+              onChangeText={setUsername}
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                color: 'black',
+                width: 225,
+                height: 50,
+                margin: 10,
+                borderWidth: 1,
+                padding: 10,
+                borderRadius: 8,
+              }}
+              placeholderTextColor="#D2B48C"
+            />
+            
+            <TextInput
+              placeholder="Website"
+              value={website}
+              onChangeText={setWebsite}
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                color: 'black',
+                width: 225,
+                height: 50,
+                margin: 10,
+                borderWidth: 1,
+                padding: 10,
+                borderRadius: 8,
+              }}
+              placeholderTextColor="#D2B48C"
+            />
+            
+            <TextInput
+              placeholder="Avatar URL"
+              value={avatarUrl}
+              onChangeText={setAvatarUrl}
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                color: 'black',
+                width: 225,
+                height: 50,
+                margin: 10,
+                borderWidth: 1,
+                padding: 10,
+                borderRadius: 8,
+              }}
+              placeholderTextColor="#D2B48C"
+            />
+            
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#4CAF50',
+                padding: 15,
+                borderRadius: 8,
+                margin: 10,
+                width: 225,
+              }}
+              onPress={updateProfile}
+              disabled={profileLoading}>
               <Text style={{
                 color: 'white',
-                fontSize: 30,
-                fontWeight: 'bold',
-                margin: 10,
                 textAlign: 'center',
-              }}>Title</Text>
-              <TextInput
-                placeholder="Title"
-                style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                  color: 'black',
-                  width: 225,
-                  height: 50,
-                  margin: -10,
-                  borderWidth: 1,
-                  padding: 10,
-                  borderRadius: 8,
-                }}
-                placeholderTextColor="#D2B48C"
-              />
-                <Pressable
-                  style={[styles.button, styles.buttonClose]}
-                  onPress={() => setModalVisible(!modalVisible)}>
-                  <Text style={styles.textStyle}>X</Text>
-                </Pressable>
-              </View>
-            </View>
-          </Modal>
-          <Pressable
-            style={[styles.button, styles.buttonOpen]}
-            onPress={() => setModalVisible(true)}>
-            <Text style={styles.textStyle}>+</Text>
-          </Pressable>
+                fontWeight: 'bold',
+              }}>{profileLoading ? 'Updating...' : 'Update Profile'}</Text>
+            </TouchableOpacity>
+            
+            <Pressable
+              style={[styles.button, styles.buttonClose]}
+              onPress={() => setProfileModalVisible(false)}>
+              <Text style={styles.textStyle}>X</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      <Pressable
+        style={[styles.button, styles.buttonOpen]}
+        onPress={() => setModalVisible(true)}>
+        <Text style={styles.textStyle}>+</Text>
+      </Pressable>
         
     </ThemedView>
   );
