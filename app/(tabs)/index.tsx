@@ -1,14 +1,24 @@
-import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import {
   Button,
   ButtonText
 } from "@/components/ui/button";
+import { Heading } from '@/components/ui/heading';
+import {
+  Modal,
+  ModalBackdrop,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+} from "@/components/ui/modal";
+import { Text } from "@/components/ui/text";
 import { Session } from '@supabase/supabase-js';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Pressable, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { styles } from './styles';
 // Star Wars themed books
@@ -178,7 +188,7 @@ export default function HomeScreen() {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View>
-              <ThemedText style={styles.title}>The Jedi Archives</ThemedText>
+              <Heading size="2xl" bold style={styles.title}>The Jedi Archives</Heading>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Button
                   onPress={() => {
@@ -212,7 +222,7 @@ export default function HomeScreen() {
                 )}
               </View>
           </View>
-          <ThemedText style={styles.subtitle}>May the Force be with your reading</ThemedText>
+          <Text size="md" style={styles.subtitle}>May the Force be with your reading</Text>
         </View>
         
         <View style={styles.booksGrid}>
@@ -224,17 +234,17 @@ export default function HomeScreen() {
                 contentFit="cover"
               />
               <View style={styles.bookInfo}>
-                <ThemedText style={styles.bookTitle} numberOfLines={2}>
+                <Text size="sm" bold style={styles.bookTitle} numberOfLines={2}>
                   {book.title}
-                </ThemedText>
-                <ThemedText style={styles.bookAuthor} numberOfLines={1}>
+                </Text>
+                <Text size="xs" style={styles.bookAuthor} numberOfLines={1}>
                   {book.author}
-                </ThemedText>
+                </Text>
                 <View style={styles.eraContainer}>
-                  <ThemedText style={styles.era}>{book.era}</ThemedText>
+                  <Text size="xs" style={styles.era}>{book.era}</Text>
                 </View>
                 <View style={styles.ratingContainer}>
-                  <ThemedText style={styles.rating}>★ {book.rating}</ThemedText>
+                  <Text size="xs" style={styles.rating}>★ {book.rating}</Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -243,63 +253,104 @@ export default function HomeScreen() {
       </ScrollView>
         
       {/* Book Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(false);
-        }}>
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
+      <Modal isOpen={modalVisible} onClose={() => setModalVisible(false)}>
+        <ModalBackdrop />
+        <ModalContent>
+          <ModalHeader>
             <Text style={{
               color: 'white',
               fontSize: 30,
               fontWeight: 'bold',
-              margin: 10,
               textAlign: 'center',
-            }}>Title</Text>
+            }}>Add New Book</Text>
+            <ModalCloseButton onPress={() => setModalVisible(false)}>
+              <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>×</Text>
+            </ModalCloseButton>
+          </ModalHeader>
+          <ModalBody>
             <TextInput
-              placeholder="Title"
+              placeholder="Book Title"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.9)',
                 color: 'black',
-                width: 225,
+                width: '100%',
                 height: 50,
-                margin: -10,
+                marginVertical: 10,
                 borderWidth: 1,
                 padding: 10,
                 borderRadius: 8,
               }}
               placeholderTextColor="#D2B48C"
             />
-            <Pressable
-              style={[styles.button, styles.buttonClose]}
-              onPress={() => setModalVisible(false)}>
-              <Text style={styles.textStyle}>X</Text>
-            </Pressable>
-          </View>
-        </View>
+            <TextInput
+              placeholder="Author"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                color: 'black',
+                width: '100%',
+                height: 50,
+                marginVertical: 10,
+                borderWidth: 1,
+                padding: 10,
+                borderRadius: 8,
+              }}
+              placeholderTextColor="#D2B48C"
+            />
+            <TextInput
+              placeholder="Cover URL"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                color: 'black',
+                width: '100%',
+                height: 50,
+                marginVertical: 10,
+                borderWidth: 1,
+                padding: 10,
+                borderRadius: 8,
+              }}
+              placeholderTextColor="#D2B48C"
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              onPress={() => setModalVisible(false)}
+              variant="outline"
+              action="secondary"
+              size="sm"
+            >
+              <ButtonText>Cancel</ButtonText>
+            </Button>
+            <Button
+              onPress={() => {
+                // Add book logic here
+                setModalVisible(false);
+              }}
+              variant="solid"
+              action="primary"
+              size="sm"
+            >
+              <ButtonText>Add Book</ButtonText>
+            </Button>
+          </ModalFooter>
+        </ModalContent>
       </Modal>
 
       {/* Profile Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={profileModalVisible}
-        onRequestClose={() => {
-          setProfileModalVisible(false);
-        }}>
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
+      <Modal isOpen={profileModalVisible} onClose={() => setProfileModalVisible(false)}>
+        <ModalBackdrop />
+        <ModalContent>
+          <ModalHeader>
             <Text style={{
               color: 'white',
               fontSize: 30,
               fontWeight: 'bold',
-              margin: 10,
               textAlign: 'center',
             }}>Update Profile</Text>
-            
+            <ModalCloseButton onPress={() => setProfileModalVisible(false)}>
+              <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>×</Text>
+            </ModalCloseButton>
+          </ModalHeader>
+          <ModalBody>
             <TextInput
               placeholder="Username"
               value={username}
@@ -307,9 +358,9 @@ export default function HomeScreen() {
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.9)',
                 color: 'black',
-                width: 225,
+                width: '100%',
                 height: 50,
-                margin: 10,
+                marginVertical: 10,
                 borderWidth: 1,
                 padding: 10,
                 borderRadius: 8,
@@ -324,9 +375,9 @@ export default function HomeScreen() {
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.9)',
                 color: 'black',
-                width: 225,
+                width: '100%',
                 height: 50,
-                margin: 10,
+                marginVertical: 10,
                 borderWidth: 1,
                 padding: 10,
                 borderRadius: 8,
@@ -341,40 +392,36 @@ export default function HomeScreen() {
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.9)',
                 color: 'black',
-                width: 225,
+                width: '100%',
                 height: 50,
-                margin: 10,
+                marginVertical: 10,
                 borderWidth: 1,
                 padding: 10,
                 borderRadius: 8,
               }}
               placeholderTextColor="#D2B48C"
             />
-            
-            <TouchableOpacity
-              style={{
-                backgroundColor: '#4CAF50',
-                padding: 15,
-                borderRadius: 8,
-                margin: 10,
-                width: 225,
-              }}
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              onPress={() => setProfileModalVisible(false)}
+              variant="outline"
+              action="secondary"
+              size="sm"
+            >
+              <ButtonText>Cancel</ButtonText>
+            </Button>
+            <Button
               onPress={updateProfile}
-              disabled={profileLoading}>
-              <Text style={{
-                color: 'white',
-                textAlign: 'center',
-                fontWeight: 'bold',
-              }}>{profileLoading ? 'Updating...' : 'Update Profile'}</Text>
-            </TouchableOpacity>
-            
-            <Pressable
-              style={[styles.button, styles.buttonClose]}
-              onPress={() => setProfileModalVisible(false)}>
-              <Text style={styles.textStyle}>X</Text>
-            </Pressable>
-          </View>
-        </View>
+              disabled={profileLoading}
+              variant="solid"
+              action="primary"
+              size="sm"
+            >
+              <ButtonText>{profileLoading ? 'Updating...' : 'Update Profile'}</ButtonText>
+            </Button>
+          </ModalFooter>
+        </ModalContent>
       </Modal>
 
       <Pressable
