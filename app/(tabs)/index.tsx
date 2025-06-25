@@ -85,6 +85,7 @@ export default function HomeScreen() {
   const [website, setWebsite] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const router = useRouter();
+  const [isVisible, setIsVisible] = useState(true);
 
   // Check for session on component mount
   useEffect(() => {
@@ -159,6 +160,14 @@ export default function HomeScreen() {
       setProfileLoading(false);
     }
   }
+//login funcitons, signout, isLoggedIn
+  function isLoggedIn() {
+    return session && session.user;
+  }
+  async function signOut() {
+    const { error } = await supabase.auth.signOut()
+    router.push('/login');
+  }
 
   return (
     <ThemedView style={styles.container}>
@@ -167,7 +176,15 @@ export default function HomeScreen() {
           <View>
               <ThemedText style={styles.title}>The Jedi Archives</ThemedText>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <TouchableOpacity onPress={() => router.push('/login')}>
+                <TouchableOpacity onPress={() => {
+                  if(!isLoggedIn()) {
+                    router.push('/login');
+                    console.log("to login")
+                  } else {
+                    signOut();
+                    console.log('signed out');
+                  }
+                }}>
 
                   <ThemedText style={{
                     backgroundColor: 'red',
