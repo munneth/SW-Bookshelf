@@ -1,5 +1,9 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import {
+  Button,
+  ButtonText
+} from "@/components/ui/button";
 import { Session } from '@supabase/supabase-js';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -7,7 +11,6 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Modal, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { styles } from './styles';
-
 // Star Wars themed books
 const starWarsBooks = [
   {
@@ -167,8 +170,9 @@ export default function HomeScreen() {
   async function signOut() {
     const { error } = await supabase.auth.signOut()
     router.push('/login');
+    console.log('signed out');
   }
-
+  
   return (
     <ThemedView style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -176,41 +180,35 @@ export default function HomeScreen() {
           <View>
               <ThemedText style={styles.title}>The Jedi Archives</ThemedText>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <TouchableOpacity onPress={() => {
-                  if(!isLoggedIn()) {
-                    router.push('/login');
-                    console.log("to login")
-                  } else {
-                    signOut();
-                    console.log('signed out');
-                  }
-                }}>
+                <Button
+                  onPress={() => {
+                    if(!isLoggedIn()) {
+                      router.push('/login');
+                      console.log("to login")
+                    } else {
+                      signOut();
+                      //console.log('signed out');
 
-                  <ThemedText style={{
-                    backgroundColor: 'red',
-                    borderRadius: 10,
-                    padding: 10,
-                    margin: 10,
-                    color: 'white',
-                    fontSize: 16,
-                    fontWeight: 'bold',
-                    textAlign: 'center',
-                  }}>{session && session.user ? 'Sign Out' : 'Login'}</ThemedText>
-                </TouchableOpacity>
+                    }
+                  }}
+                  variant="solid"
+                  action="negative"
+                  size="md"
+                >
+                  <ButtonText>
+                    {session && session.user ? 'Sign Out' : 'Login'}
+                  </ButtonText>
+                </Button>
                 
                 {session && (
-                  <TouchableOpacity onPress={() => setProfileModalVisible(true)}>
-                    <ThemedText style={{
-                      backgroundColor: '#4CAF50',
-                      borderRadius: 10,
-                      padding: 10,
-                      margin: 10,
-                      color: 'white',
-                      fontSize: 16,
-                      fontWeight: 'bold',
-                      textAlign: 'center',
-                    }}>Profile</ThemedText>
-                  </TouchableOpacity>
+                  <Button
+                    onPress={() => setProfileModalVisible(true)}
+                    variant="solid"
+                    action="positive"
+                    size="md"
+                  >
+                    <ButtonText>Profile</ButtonText>
+                  </Button>
                 )}
               </View>
           </View>
