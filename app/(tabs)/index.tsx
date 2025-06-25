@@ -168,6 +168,7 @@ export default function HomeScreen() {
               <ThemedText style={styles.title}>The Jedi Archives</ThemedText>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <TouchableOpacity onPress={() => router.push('/login')}>
+
                   <ThemedText style={{
                     backgroundColor: 'red',
                     borderRadius: 10,
@@ -177,7 +178,7 @@ export default function HomeScreen() {
                     fontSize: 16,
                     fontWeight: 'bold',
                     textAlign: 'center',
-                  }}>Login</ThemedText>
+                  }}>{session && session.user ? 'Sign Out' : 'Login'}</ThemedText>
                 </TouchableOpacity>
                 
                 {session && (
